@@ -66,6 +66,7 @@ class WasteCollectionViewSet(viewsets.ModelViewSet):
         return WasteCollection.objects.none()
 
 class JobOfferViewSet(viewsets.ModelViewSet):
+
     queryset = JobOffer.objects.all()
     serializer_class = JobOfferSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
