@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import User, JobOffer, WasteCollection, WorkHour, Payment
+from .models import User, JobOffer, WasteCollection, WorkSession, Payment
 
 # Utilisateur
 class UserSerializer(serializers.ModelSerializer):
@@ -28,12 +28,13 @@ class JobOfferSerializer(serializers.ModelSerializer):
 class WasteCollectionSerializer(serializers.ModelSerializer):
     class Meta:
         model = WasteCollection
-        fields = '__all__'
+        fields = ['id', 'material', 'weight_in_grams', 'collected_at', 'collector']
+        read_only_fields = ['collector', 'collected_at']
 
 # Heures de travail
 class WorkHourSerializer(serializers.ModelSerializer):
     class Meta:
-        model = WorkHour
+        model = WorkSession
         fields = '__all__'
 
 # Paiements
@@ -41,3 +42,12 @@ class PaymentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Payment
         fields = '__all__'
+        
+        
+# Session de travail
+class WorkSessionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = WorkSession
+        fields = ['id', 'date', 'hours_worked', 'collector']
+        read_only_fields = ['collector']
+
