@@ -70,6 +70,13 @@ TEMPLATES = [
     },
 ]
 
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
+}
+
+
 WSGI_APPLICATION = "Ecojob_cm.wsgi.application"
 
 
@@ -81,6 +88,7 @@ WSGI_APPLICATION = "Ecojob_cm.wsgi.application"
 # Pour utiliser MySQL avec Django, assurez-vous d'abord d'installer le paquet mysqlclient :
 # pip install mysqlclient
 # Ensuite, configurez la base de données comme ci-dessous.
+"""
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.mysql",
@@ -92,6 +100,13 @@ DATABASES = {
         "OPTIONS": {
             "init_command": "SET sql_mode='STRICT_TRANS_TABLES'",
         },
+    }
+}
+"""
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
 

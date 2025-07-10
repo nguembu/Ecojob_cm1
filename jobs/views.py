@@ -1,18 +1,22 @@
 from rest_framework import viewsets, permissions, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework.generics import CreateAPIView
+from rest_framework.generics import ListAPIView, CreateAPIView
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import authenticate
-from .models import User, JobOffer, WasteCollection
+
+from .models import User, JobOffer, WasteCollection, WorkSession, Payment
 from .serializers import (
     UserRegisterSerializer,
     UserSerializer,
-    EmailTokenObtainPairSerializer,
     JobOfferSerializer,
-    WasteCollectionSerializer
+    WasteCollectionSerializer,
+    WorkSessionSerializer,
+    PaymentSerializer
 )
+from .permissions import IsCollector  
 
+# --- Authentification & profil ---
 class UserRegisterView(CreateAPIView):
     serializer_class = UserRegisterSerializer
     permission_classes = [permissions.AllowAny]
@@ -54,19 +58,51 @@ class UserProfileView(APIView):
     def get(self, request):
         return Response(UserSerializer(request.user).data)
 
+
 class WasteCollectionViewSet(viewsets.ModelViewSet):
-    queryset = WasteCollection.objects.all()
     serializer_class = WasteCollectionSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, IsCollector]
 
     def get_queryset(self):
-        user = self.request.user
-        if user.role == 'collector':
-            return WasteCollection.objects.filter(collector=user)
-        return WasteCollection.objects.none()
+        # Affiche uniquement les collectes de l'utilisateur connecté
+        return WasteCollection.objects.filter(collector=self.request.user)
 
+    def perform_create(self, serializer):
+        # L'utilisateur connecté est enregistré automatiquement comme collecteur
+        serializer.save(collector=self.request.user)
+
+    def perform_update(self, serializer):
+        # Empêche de changer le collecteur
+        serializer.save(collector=self.request.user)
+
+    def perform_destroy(self, instance):
+        # Ne supprime que si le collecteur est bien l'auteur
+        if instance.collector == self.request.user:
+            instance.delete()
+
+
+# --- JobOffers (publique en lecture) ---
 class JobOfferViewSet(viewsets.ModelViewSet):
-
     queryset = JobOffer.objects.all()
     serializer_class = JobOfferSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+
+# --- WorkSession ---
+class WorkSessionViewSet(viewsets.ModelViewSet):
+    serializer_class = WorkSessionSerializer
+    permission_classes = [permissions.IsAuthenticated, IsCollector]
+
+    def get_queryset(self):
+        return WorkSession.objects.filter(collector=self.request.user)
+
+    def perform_create(self, serializer):
+        serializer.save(collector=self.request.user)
+
+# --- Paiement (lecture seule pour collecteur) ---
+class PaymentListView(ListAPIView):
+    serializer_class = PaymentSerializer
+    permission_classes = [permissions.IsAuthenticated, IsCollector]
+
+    def get_queryset(self):
+        return Payment.objects.filter(collector=self.request.user)
+
