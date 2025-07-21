@@ -32,10 +32,10 @@ class WasteCollectionSerializer(serializers.ModelSerializer):
         read_only_fields = ['collector', 'collected_at']
 
 # Heures de travail
-class WorkHourSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = WorkSession
-        fields = '__all__'
+# class WorkHourSerializer(serializers.ModelSerializer):
+#     class Meta:
+#         model = WorkSession
+#         fields = '__all__'
 
 # Paiements
 class PaymentSerializer(serializers.ModelSerializer):
