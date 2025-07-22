@@ -7,6 +7,7 @@ from .views import (
     UserProfileView,
     WasteCollectionViewSet,
     JobOfferViewSet,
+    CollectorDashboardView,
 )
 
 router = DefaultRouter()
@@ -17,5 +18,6 @@ urlpatterns = [
     path('register/', UserRegisterView.as_view(), name='user-register'),
     path('login/', UserLoginView.as_view(), name='user-login'),
     path('profile/', UserProfileView.as_view(), name='user-profile'),
+    path('collector-dashboard/', CollectorDashboardView.as_view(), name='collector-dashboard'),
     path('', include(router.urls)),
 ]
