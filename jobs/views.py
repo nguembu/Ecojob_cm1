@@ -23,6 +23,7 @@ from .serializers import (
     WorkSessionSerializer,
     PaymentSerializer
 )
+from .permissions import IsCollector  
 
 
 # --- Authentification & profil ---
