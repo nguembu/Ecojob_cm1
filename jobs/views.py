@@ -4,6 +4,8 @@ from rest_framework.views import APIView
 from rest_framework.generics import ListAPIView, CreateAPIView
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import authenticate
+from django.db.models import Sum
+from rest_framework.permissions import IsAuthenticated
 
 from .models import User, JobOffer, WasteCollection, WorkSession, Payment
 from .serializers import (
@@ -14,17 +16,7 @@ from .serializers import (
     WorkSessionSerializer,
     PaymentSerializer
 )
-
-from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
-from django.db.models import Sum
-from .models import  WorkSession, Payment
-from .serializers import ( 
-    WorkSessionSerializer,
-    PaymentSerializer
-)
 from .permissions import IsCollector  
-
 
 # --- Authentification & profil ---
 class UserRegisterView(CreateAPIView):
@@ -97,6 +89,24 @@ class JobOfferViewSet(viewsets.ModelViewSet):
     serializer_class = JobOfferSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
+# --- WorkSession ---
+class WorkSessionViewSet(viewsets.ModelViewSet):
+    serializer_class = WorkSessionSerializer
+    permission_classes = [permissions.IsAuthenticated, IsCollector]
+
+    def get_queryset(self):
+        return WorkSession.objects.filter(collector=self.request.user)
+
+    def perform_create(self, serializer):
+        serializer.save(collector=self.request.user)
+
+# --- Paiement (lecture seule pour collecteur) ---
+class PaymentListView(ListAPIView):
+    serializer_class = PaymentSerializer
+    permission_classes = [permissions.IsAuthenticated, IsCollector]
+
+    def get_queryset(self):
+        return Payment.objects.filter(collector=self.request.user)
 
 class CollectorDashboardView(APIView):
     permission_classes = [IsAuthenticated]
