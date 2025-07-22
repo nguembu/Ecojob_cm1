@@ -1,17 +1,21 @@
-from rest_framework import viewsets, permissions, status
+from rest_framework import viewsets, permissions, status, filters
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.generics import CreateAPIView
 from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework.permissions import IsAuthenticated, SAFE_METHODS
 from django.contrib.auth import authenticate
+
 from .models import User, JobOffer, WasteCollection
 from .serializers import (
     UserRegisterSerializer,
     UserSerializer,
-    EmailTokenObtainPairSerializer,
     JobOfferSerializer,
-    WasteCollectionSerializer
+    WasteCollectionSerializer,
 )
+from .permissions import *  
+from rest_framework.pagination import PageNumberPagination
+
 
 class UserRegisterView(CreateAPIView):
     serializer_class = UserRegisterSerializer
@@ -64,9 +68,24 @@ class WasteCollectionViewSet(viewsets.ModelViewSet):
         if user.role == 'collector':
             return WasteCollection.objects.filter(collector=user)
         return WasteCollection.objects.none()
+    
 
+
+# --- pagination ---
+class JobOfferPagination(PageNumberPagination):
+    page_size = 10
+
+
+# --- JobOffers (publique en lecture) ---
 class JobOfferViewSet(viewsets.ModelViewSet):
-
-    queryset = JobOffer.objects.all()
+    queryset = JobOffer.objects.all().order_by('-published_at')
     serializer_class = JobOfferSerializer
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    pagination_class = JobOfferPagination
+    filter_backends = [filters.SearchFilter, filters.OrderingFilter]
+    search_fields = ['location', 'contract_type', 'company']
+    ordering_fields = ['published_at', 'location']
+
+    def get_permissions(self):
+        if self.request.method in SAFE_METHODS:
+            return [IsAuthenticated()]
+ 
