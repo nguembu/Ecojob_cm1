@@ -5,8 +5,6 @@ from rest_framework.generics import ListAPIView, CreateAPIView
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.permissions import IsAuthenticated, SAFE_METHODS
 from django.contrib.auth import authenticate
-
-=======
 from django.db.models import Sum
 
 from .models import User, JobOffer, WasteCollection, WorkSession, Payment
@@ -16,15 +14,12 @@ from .serializers import (
     UserSerializer,
     JobOfferSerializer,
     WasteCollectionSerializer,
+    WorkSessionSerializer,
+    PaymentSerializer,
 
 )
 from .permissions import *  
 from rest_framework.pagination import PageNumberPagination
-
-=======
-    WorkSessionSerializer,
-    PaymentSerializer
-)
 from .permissions import IsCollector  
 
 
@@ -102,7 +97,7 @@ class JobOfferViewSet(viewsets.ModelViewSet):
         if self.request.method in SAFE_METHODS:
             return [IsAuthenticated()]
  
-=======
+
         # Affiche uniquement les collectes de l'utilisateur connecté
         return WasteCollection.objects.filter(collector=self.request.user)
 
@@ -177,4 +172,3 @@ class CollectorDashboardView(APIView):
                 payment_data.order_by('-created_at')[:3], many=True).data
 
         return Response(response_data)
-
