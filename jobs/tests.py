@@ -156,11 +156,14 @@ class WasteCollectionTests(APITestCase):
 
     # 🔹 Création d’une collecte
     def test_create_waste_collection(self):
+        # Ne pas passer collector dans data; l'API doit le définir via request.user
         data = {'material': 'plastique', 'weight_in_grams': 1200}
         response = self.client.post(self.base_url, data, **self.auth_header)
         self.assertEqual(response.status_code, 201)
         self.assertEqual(response.data['material'], 'plastique')
-        self.assertEqual(WasteCollection.objects.count(), 1)
+        # Vérifie que la collecte est bien associée au collecteur authentifié
+        wc = WasteCollection.objects.get(pk=response.data['id'])
+        self.assertEqual(wc.collector, self.collector)
 
     # 🔹 Récupération des collectes du collecteur
     def test_get_waste_collections(self):

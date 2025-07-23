@@ -71,12 +71,16 @@ class WasteCollectionViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated, IsCollector]
 
     def get_queryset(self):
-
         user = self.request.user
         if user.role == 'collector':
             return WasteCollection.objects.filter(collector=user)
         return WasteCollection.objects.none()
+
+    def perform_create(self, serializer):
+        # Associe automatiquement le collecteur authentifié à la collecte
+        serializer.save(collector=self.request.user)
     
+   
 
 
 # --- pagination ---

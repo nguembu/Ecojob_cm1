@@ -65,3 +65,9 @@ class Payment(models.Model):
 
     def __str__(self):
         return f"{self.collector.username} - {self.amount_fcfa} FCFA"
+
+
+class Application(models.Model):
+    offer = models.ForeignKey(JobOffer, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    date_application = models.DateTimeField(auto_now_add=True)
