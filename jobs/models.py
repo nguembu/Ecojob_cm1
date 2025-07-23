@@ -18,15 +18,24 @@ class User(AbstractUser):
         return f"{self.username} ({self.get_role_display()})"
 
 class JobOffer(models.Model):
-    title = models.CharField(max_length=100)
+    CONTRACT_CHOICES = [
+        ('CDI', 'CDI'),
+        ('CDD', 'CDD'),
+        ('Stage', 'Stage'),
+        ('Freelance', 'Freelance'),
+    ]
+
+    title = models.CharField(max_length=255)
+    company = models.CharField(max_length=255)
     description = models.TextField()
+    recruiter = models.ForeignKey(User, on_delete=models.CASCADE)
     location = models.CharField(max_length=100)
-    contract_type = models.CharField(max_length=50)
+    contract_type = models.CharField(max_length=50, choices=CONTRACT_CHOICES)
     published_at = models.DateTimeField(auto_now_add=True)
-    recruiter = models.ForeignKey(User, on_delete=models.CASCADE, limit_choices_to={'role': 'recruiter'})
 
     def __str__(self):
         return self.title
+  
 
 class WasteCollection(models.Model):
     collector = models.ForeignKey(User, on_delete=models.CASCADE, limit_choices_to={'role': 'collector'})

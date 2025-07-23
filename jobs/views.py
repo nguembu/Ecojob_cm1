@@ -1,22 +1,32 @@
-from rest_framework import viewsets, permissions, status
+from rest_framework import viewsets, permissions, status, filters
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.generics import ListAPIView, CreateAPIView
 from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework.permissions import IsAuthenticated, SAFE_METHODS
 from django.contrib.auth import authenticate
+
+=======
 from django.db.models import Sum
-from rest_framework.permissions import IsAuthenticated
 
 from .models import User, JobOffer, WasteCollection, WorkSession, Payment
+
 from .serializers import (
     UserRegisterSerializer,
     UserSerializer,
     JobOfferSerializer,
     WasteCollectionSerializer,
+
+)
+from .permissions import *  
+from rest_framework.pagination import PageNumberPagination
+
+=======
     WorkSessionSerializer,
     PaymentSerializer
 )
 from .permissions import IsCollector  
+
 
 # --- Authentification & profil ---
 class UserRegisterView(CreateAPIView):
@@ -66,6 +76,33 @@ class WasteCollectionViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated, IsCollector]
 
     def get_queryset(self):
+
+        user = self.request.user
+        if user.role == 'collector':
+            return WasteCollection.objects.filter(collector=user)
+        return WasteCollection.objects.none()
+    
+
+
+# --- pagination ---
+class JobOfferPagination(PageNumberPagination):
+    page_size = 10
+
+
+# --- JobOffers (publique en lecture) ---
+class JobOfferViewSet(viewsets.ModelViewSet):
+    queryset = JobOffer.objects.all().order_by('-published_at')
+    serializer_class = JobOfferSerializer
+    pagination_class = JobOfferPagination
+    filter_backends = [filters.SearchFilter, filters.OrderingFilter]
+    search_fields = ['location', 'contract_type', 'company']
+    ordering_fields = ['published_at', 'location']
+
+    def get_permissions(self):
+        if self.request.method in SAFE_METHODS:
+            return [IsAuthenticated()]
+ 
+=======
         # Affiche uniquement les collectes de l'utilisateur connecté
         return WasteCollection.objects.filter(collector=self.request.user)
 
@@ -140,3 +177,4 @@ class CollectorDashboardView(APIView):
                 payment_data.order_by('-created_at')[:3], many=True).data
 
         return Response(response_data)
+
