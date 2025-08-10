@@ -1,0 +1,60 @@
+name: 🛠️ Django CI/CD - EcoJob CM
+
+on:
+  push:
+    branches:  [ main, john, Alain, Ronel, Nel ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+    build-and-test:
+        name: 🔧 Build & Tests
+        runs-on: ubuntu-latest
+
+        services:
+            postgres:
+                image: postgres:13
+                env:
+                    POSTGRES_USER: ecojob
+                    POSTGRES_PASSWORD: ecojob
+                    POSTGRES_DB: ecojob
+                ports:
+                    - 5432:5432
+                options: >-
+                    --health-cmd pg_isready
+                    --health-interval 10s
+                    --health-timeout 5s
+                    --health-retries 5
+
+        env:
+            DATABASE_URL: postgres://ecojob:ecojob@localhost:5432/ecojob
+
+        steps:
+          - name: 📥 Cloner le dépôt
+            uses: actions/checkout@v3
+
+          - name: 🐍 Configurer Python
+            uses: actions/setup-python@v4
+            with:
+              python-version: '3.10'
+
+          - name: 📦 Installer les dépendances
+            run: |
+              python -m pip install --upgrade pip
+              pip install -r requirements.txt || pip install django djangorestframework flake8 psycopg2
+
+          - name: ✅ Vérifier la qualité du code avec flake8
+            run: |
+              flake8 . --exclude=venv,__pycache__,migrations --max-line-length=120
+
+          - name: ⚙️ Appliquer les migrations
+            run: |
+              python manage.py makemigrations
+              python manage.py migrate
+
+          - name: 🧪 Lancer les tests unitaires
+            run: |
+              python manage.py test 
+        
+
+              
